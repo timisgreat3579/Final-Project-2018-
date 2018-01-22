@@ -148,6 +148,7 @@ class loginWindow(object):
                     window.deiconify()
                     window.destroy()
                     window.quit()
+                    
             else:
                 messagebox.showerror('Invalid Form', 'There was an issue with the submitted form, username or password was incorrect')               
         else:
@@ -397,6 +398,7 @@ class registerWindow(object):
                     window.deiconify()
                     window.destroy()
                     window.quit()
+                    runLogin()
                 else:
                     messagebox.showerror('Incomplete Form', 'There was an issue with the submitted form, please ensure \n that you have completed all the boxes and that your passwords match.')
             else:
@@ -454,7 +456,6 @@ def runCreate():
     init()
     win = registerWindow(window)
     mainloop()
-    runLogin()
 
     return currentUser
 
@@ -465,3 +466,4 @@ def printTable():
     li = []
     for i in response['Items']:
         print(i)
+

@@ -1,5 +1,6 @@
 import pygame,os
 import importlib
+import pip
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 #if pygame.QUIT in pygame.event.get(): pygame.quit();raise SystemExit;
