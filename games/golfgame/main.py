@@ -1,13 +1,9 @@
 import sys, os.path
 leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-leader_dir = os.path.abspath(os.path.join(leader_dir, '..'))
+leader_dir = os.path.abspath(os.path.join(leader_dir, '../library'))
 sys.path.append(leader_dir)
 import leaderboard
 from leaderboard import Leaderboard
-
-game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '.')))
-game_directory = os.path.abspath(os.path.join(game_directory, '.'))
-sys.path.append(game_directory)
 import time as t
 import physics
 import math
@@ -31,19 +27,19 @@ winheight = 600
 pygame.display.set_caption('Super Minigolf')
 
 # LOAD IMAGES
-icon = pygame.image.load(os.path.join('img', 'icon.ico'))
+icon = pygame.image.load('icon.ico')
 icon = pygame.transform.scale(icon, (32,32))
-background = pygame.image.load(os.path.join('img', 'back.png'))
-sand = pygame.image.load(os.path.join('img', 'sand.png'))
-edge = pygame.image.load(os.path.join('img', 'sandEdge.png'))
-bottom = pygame.image.load(os.path.join('img', 'sandBottom.png'))
-green = pygame.image.load(os.path.join('img', 'green.png'))
-flag = pygame.image.load(os.path.join('img', 'flag.png'))
-water = pygame.image.load(os.path.join('img', 'water.png'))
-laser = pygame.image.load(os.path.join('img', 'laser.png'))
-sticky = pygame.image.load(os.path.join('img', 'sticky.png'))
-coinPics = [pygame.image.load(os.path.join('img', 'coin1.png')), pygame.image.load(os.path.join('img', 'coin2.png')), pygame.image.load(os.path.join('img', 'coin3.png')), pygame.image.load(os.path.join('img', 'coin4.png')), pygame.image.load(os.path.join('img', 'coin5.png')), pygame.image.load(os.path.join('img', 'coin6.png')), pygame.image.load(os.path.join('img', 'coin7.png')), pygame.image.load(os.path.join('img', 'coin8.png'))]
-powerMeter = pygame.image.load(os.path.join('img', 'power.png'))
+background = pygame.image.load('back.png')
+sand = pygame.image.load('sand.png')
+edge = pygame.image.load('sandEdge.png')
+bottom = pygame.image.load('sandBottom.png')
+green = pygame.image.load('green.png')
+flag = pygame.image.load('flag.png')
+water = pygame.image.load('water.png')
+laser = pygame.image.load('laser.png')
+sticky = pygame.image.load('sticky.png')
+coinPics = [pygame.image.load('coin1.png'), pygame.image.load('coin2.png'), pygame.image.load('coin3.png'), pygame.image.load('coin4.png'), pygame.image.load('coin5.png'), pygame.image.load('coin6.png'), pygame.image.load('coin7.png'), pygame.image.load('coin8.png')]
+powerMeter = pygame.image.load('power.png')
 powerMeter = pygame.transform.scale(powerMeter, (150,150))
 
 # SET ICON
@@ -534,7 +530,6 @@ sheet = scoreSheet(list)
 
 pos = courses.getStart(level, 1)
 ballStationary = pos
-start('nickiscool123')
 
 
 # MAIN GAME LOOP:

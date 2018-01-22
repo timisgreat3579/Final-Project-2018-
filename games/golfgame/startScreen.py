@@ -6,12 +6,20 @@ import sys, os.path
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
+import sys, os.path
+leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+leader_dir = os.path.abspath(os.path.join(leader_dir, '../library'))
+sys.path.append(leader_dir)
+import leaderboard
+from leaderboard import Leaderboard
 
 pygame.init()
+sys.path.append(os.path.realpath(__file__))
+
 win = pygame.display.set_mode((1080, 600))
-title = pygame.image.load(os.path.join('img', 'title.png'))
-back = pygame.image.load(os.path.join('img', 'back.png'))
-course = pygame.image.load(os.path.join('img', 'course1.png'))
+title = pygame.image.load('title.png')
+back = pygame.image.load('back.png')
+course = pygame.image.load('course1.png')
 course1 = pygame.transform.scale(course, (200, 200))
 
 font = pygame.font.SysFont('comicsansms', 24)
@@ -29,12 +37,6 @@ session = boto3.resource('dynamodb',
                              )
 table = session.Table('highscores')
 
-import sys, os.path
-leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-leader_dir = os.path.abspath(os.path.join(leader_dir, '..'))
-sys.path.append(leader_dir)
-import leaderboard
-from leaderboard import Leaderboard
 
 def getBest():
     #Use dynamodb here to get prev best
