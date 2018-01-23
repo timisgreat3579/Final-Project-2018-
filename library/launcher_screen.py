@@ -316,6 +316,7 @@ class launcher():
                #         x.exclude.append(v.get_rect())
                 for x in self.friends_window.current_window.accept_buttons:
                     if x.on_mouse_click():
+                        print('add')
                         accept_friend_request(x.user)
                         self.friends_window.current_window.update_buttons()
                 for x in self.friends_window.current_window.decline_buttons:
@@ -770,9 +771,7 @@ class profile_screen(main_frame):
             if self.user in self.friends:
                 self.add_friend_button.text = 'UNFRIEND'
                 self.add_friend_button.text_color = DDWHITE
-            elif self.user in self.requests:
-                self.add_friend_button.text = 'SENT'
-                self.add_friend_button.text_color = DDWHITE
+
         self.display_screen.surface.blit(surface_object(self.display_screen.w,self.display_screen.h,0,0,DGREY).surface,(0,0))
     def get_total_hours(self):
         mins=0
@@ -802,6 +801,8 @@ class profile_screen(main_frame):
         if self.other_profile:
             if self.add_friend_button.on_mouse_click() and not self.user in self.friends and not self.user in self.requests:
                 send_friend_request(self.user)
+                self.add_friend_button.text = 'SENT'
+                self.add_friend_button.text_color = DDWHITE
                 self.refresh_profile()
             elif self.add_friend_button.on_mouse_click() and self.user in self.friends:
                 remove_friend(self.user)
