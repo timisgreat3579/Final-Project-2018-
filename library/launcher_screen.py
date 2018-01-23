@@ -306,24 +306,16 @@ class launcher():
                 #screen = pygame.display.set_mode((1920,1080),pygame.NOFRAME)
                 self.enlarge = True
         if self.friends_open:
-            if self.friends_window.game_buttons.frames[1] == self.friends_window.current_window:
-                #for x in self.friends_window.current_window.player_buttons:
-                #    x.exclude = []
-                #for x in self.friends_window.current_window.player_buttons:
-                #    for v in self.friends_window.current_window.accept_buttons:
-                #        x.exclude.append(v.get_rect())
-                #    for v in self.friends_window.current_window.decline_buttons:
-               #         x.exclude.append(v.get_rect())
+            if self.friends_window.game_buttons.frames[1] == self.friends_window.current_window and self.friends_window.current_window.background.on_mouse_hover():
                 for x in self.friends_window.current_window.accept_buttons:
                     if x.on_mouse_click():
-                        print('add')
                         accept_friend_request(x.user)
                         self.friends_window.current_window.update_buttons()
                 for x in self.friends_window.current_window.decline_buttons:
                     if x.on_mouse_click():
                         decline_friend_request(x.user)
                         self.friends_window.current_window.update_buttons()
-            elif self.friends_window.game_buttons.frames[0] == self.friends_window.current_window:
+            elif self.friends_window.game_buttons.frames[0] == self.friends_window.current_window  and self.friends_window.current_window.background.on_mouse_hover(): 
                 for x in self.friends_window.current_window.decline_buttons:
                     if x.on_mouse_click():
                         self.open_profile(x.user)
@@ -976,4 +968,3 @@ while True:
                                 x.search_text.append(ke)
 
     pygame.display.update()
-
