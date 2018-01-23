@@ -304,7 +304,7 @@ class Leaderboard(object):
                     'peopleid':self.usr
                 }
             )
-            nList.append(str(response['Item'][self.game]))
+            nList.append(str(round(response['Item'][self.game])))
 
             table = session.Table('games_played')
             response = table.get_item(
