@@ -338,7 +338,6 @@ class Leaderboard(object):
 
     def update(self):
         self.setup()
-        self.draw()
     
     #call this method to change the font
     def font(self, font, size):

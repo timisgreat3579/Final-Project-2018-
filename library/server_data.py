@@ -28,7 +28,47 @@ def get_game_data(game,data_type,target_user):
     game_table = session.Table(data_type)
     response = game_table.query(KeyConditionExpression=Key('peopleid').eq(target_user))
     for i in response['Items']: names = i[game]
-    return names 
+    return names
+
+def get_chat_log(primary_user,secondary_user):
+    chat_found = None
+    chat_table = session.Table('chat_sessions')
+    response = chat_table.scan()
+    for i in response['Items']:
+        name = i['users']
+        if str(primary_user+','+secondary_user) == name or str(secondary_user+','+primary_user) == name:
+            response2 = chat_table.query(KeyConditionExpression=Key('users').eq(name))
+            for x in response2['Items']:
+                chat_found = x['chat_log']
+                return chat_found
+    else:
+        chat_found = create_chat_session(primary_user,secondary_user)
+
+def create_chat_session(primary_user,secondary_user):
+    chat_table = session.Table('chat_sessions')
+    response = chat_table.put_item(
+           Item={
+                'users': primary_user+','+secondary_user,
+                'chat_log':[]
+                }
+        )
+    return None
+
+def send_message(primary_user,secondary_user,message_to_send):
+    chat_table = session.Table('chat_sessions')
+    response = chat_table.scan()
+    final_name = ''
+    for i in response['Items']:
+        name = i['users']
+        if str(primary_user+','+secondary_user) == name or str(secondary_user+','+primary_user) == name:
+            final_name = name
+    chat_to_edit = get_chat_log(primary_user,secondary_user)
+    response = chat_table.put_item(
+           Item={
+                'users': final_name,
+                'chat_log':chat_to_edit +[[[primary_user],[message_to_send]]]
+                }
+        )
 
 def accept_friend_request(friend):
     response = people_table.get_item(

@@ -2,7 +2,7 @@ import pygame,os,pygame.gfxdraw,sys,os.path
 from random import randint,randrange
 from .loading_screen import buffer,session_var,user_login
 from .leaderboard import Leaderboard
-from .server_data import get_players,get_table_data,accept_friend_request,decline_friend_request,send_friend_request,remove_friend,get_game_data
+from .server_data import *
 
 
 os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -21,6 +21,7 @@ GREEN = (6, 114, 15)
 WHITE = (255,255,255)
 DWHITE = (200,200,200)
 DDWHITE = (150,150,150)
+BLUE = (29, 104, 224)
 
 
 class random_stars(object):
@@ -59,6 +60,7 @@ class surface_object():
         self.h = h
         self.x = x
         self.y = y
+        self.real_y = 0
         self.color = color
         self.surface = pygame.Surface((self.w,self.h))
         self.surface = self.surface.convert()
@@ -67,8 +69,11 @@ class surface_object():
     def set_color(self,color):
         self.surface.fill(color)
 
-    def on_mouse_hover(self):
-        return pygame.Rect(self.x,self.y,self.w,self.h).collidepoint(pygame.mouse.get_pos())
+    def on_mouse_hover(self,y=False):
+        if y:
+            return pygame.Rect(self.x,self.real_y,self.w,self.h).collidepoint(pygame.mouse.get_pos())
+        else:
+            return pygame.Rect(self.x,self.y,self.w,self.h).collidepoint(pygame.mouse.get_pos())
 
     def get_width(self):
         return self.w
@@ -76,8 +81,8 @@ class surface_object():
     def get_height(self):
         return self.h
 
-    def get_rect(self):
-        return self.surface.get_rect(center=(self.x,self.y))
+    def get_rect(self,y):
+        return self.surface.get_rect(center=(self.x,self.y+y))
 
 class popup_window_friend():
     def __init__(self):
@@ -185,6 +190,8 @@ class launcher():
         self.top_bar = surface_object(self.w,self.h/8,0,0,DDGREY)
         self.enlarge = False
         self.friends_open = False
+        self.open_chat_bar = False
+        self.chat_windows = []
         self.brand_text = draw_text('TRNT v1.0',30,True,WHITE)
 
         self.user_text = draw_text('Welcome, ' + user.upper() +'!',17,False,WHITE)
@@ -202,7 +209,7 @@ class launcher():
         self.minimize_button = button(self.screen,'-',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=16,bold = True)
 
         self.friends_button = button(self.screen,'FRIENDS',startpos=(self.top_bar.w-(self.top_bar.w/25*4),0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=10,bold = True)
-
+        self.chat_bar = None
         ##FRIENDS WINDOW
         self.friends_window = popup_window_friend()
     def draw(self,surface):
@@ -225,6 +232,11 @@ class launcher():
         self.friends_button.draw(surface)
         if self.friends_open:
             self.friends_window.draw(surface)
+        if self.open_chat_bar:
+            self.chat_bar.draw(surface)
+        for x in self.chat_windows:
+            x.draw(surface)
+
     def check_buttons(self):
         if pygame.Rect(self.friends_window.main_surface.x,self.friends_window.main_surface.y,self.friends_window.main_surface.w,self.friends_window.main_surface.h).collidepoint(pygame.mouse.get_pos()) and self.friends_open:
             pass
@@ -234,7 +246,7 @@ class launcher():
         self.friends_window.current_window = self.friends_window.game_buttons.check_event(self.friends_window.current_window)
         if isinstance(self.frame_selected,community_screen):
             for x in self.community_menu.player_buttons:
-                if x.on_mouse_click():
+                if x.on_mouse_click() and self.community_menu.players_box.on_mouse_hover(y = True):
                     self.open_profile(x.user)
             if self.community_menu.refresh_button.on_mouse_click():
                 buffer(self.community_menu.players_box,self.community_menu.players_box.x
@@ -255,6 +267,7 @@ class launcher():
             sys.path.append(game_directory)
             if self.game_screen.name == 'quicktype' and self.game_screen.play_button.on_mouse_click():
                 import reactionGame
+                print(user_login)
                 start(user_login)
             elif self.game_screen.name == 'integerrecall' and self.game_screen.play_button.on_mouse_click():
                 import integerRecall
@@ -267,6 +280,17 @@ class launcher():
         if self.close_button.on_mouse_click():
             pygame.quit()
             raise SystemExit
+        if len(self.chat_windows) != 0:
+            for i,x in enumerate(self.chat_windows):
+                if x.open:
+                    if x.close_button.on_mouse_click():
+                        del self.chat_windows[i]
+                    if x.send_button.on_mouse_click():
+                        x.send_text_message()
+                if x.display_screen.on_mouse_hover():
+                    x.selected = True
+                else:
+                    x.selected = False
         if self.friends_button.on_mouse_click():
             for x in self.friends_window.game_buttons.frames:
                 x.update_buttons()
@@ -279,7 +303,7 @@ class launcher():
                 screen = pygame.display.set_mode((1280,720),pygame.NOFRAME)
                 self.enlarge = False
             else:
-                screen = pygame.display.set_mode((1920,1080),pygame.NOFRAME)
+                #screen = pygame.display.set_mode((1920,1080),pygame.NOFRAME)
                 self.enlarge = True
         if self.friends_open:
             if self.friends_window.game_buttons.frames[1] == self.friends_window.current_window:
@@ -302,6 +326,9 @@ class launcher():
                 for x in self.friends_window.current_window.decline_buttons:
                     if x.on_mouse_click():
                         self.open_profile(x.user)
+                for x in self.friends_window.current_window.accept_buttons:
+                    if x.on_mouse_click():
+                        self.chat_windows.append(chat_window(self.screen,user_login,x.user))
                         
     def open_profile(self,user):
         for x in self.main_buttons.button_list:
@@ -349,6 +376,14 @@ class launcher():
                         self.friends_window.current_window.scrolling = False
                 else:
                     self.friends_window.current_window.scrolling = False
+        if len(self.chat_windows) != 0:
+            for x in self.chat_windows:
+                if x.open:
+                    if event == pygame.MOUSEBUTTONDOWN:
+                        x.scrolling = True
+                        x.scroll_y = pygame.mouse.get_pos()[1]
+                    else:
+                        x.scrolling = False
     def reset_path(self):
         game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '')))
         game_directory = os.path.abspath(os.path.join(game_directory, ''))
@@ -370,7 +405,95 @@ class main_frame():
         
     def draw(self,surface):
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
+
+
+import textwrap
+class chat_window(main_frame):
+    def __init__(self,parent,user1,user2):
+        super().__init__(parent)
+        self.user1 = user1
+        self.user2 = user2
+        self.chat_text = self.get_chat_text()
+        self.text_list = []
+        self.font_size = 15
+        self.open = True
+        self.selected = False
+        self.scrolling = False
+        self.scroll_y = 0
+        self.current = 0
+        self.search_text = []
+        self.display_screen = surface_object(220,250,(self.parent.get_width()-230)/2,(self.parent.get_height()-300)/2,DGREY,alpha = 255)
+        self.scroll_bar_frame = surface_object(self.display_screen.w/20,self.display_screen.h/1.5,self.display_screen.w - self.display_screen.w/20 * 2,(self.display_screen.h - self.display_screen.h/1.5)/2,SGREY)
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,50,self.scroll_bar_frame.x+self.display_screen.x,self.scroll_bar_frame.y + self.display_screen.y,WHITE)
+        self.top_bar = surface_object(self.display_screen.w,self.display_screen.h/10,0,0,DDGREY)
+        self.bottom_bar = surface_object(self.display_screen.w,self.display_screen.h/7,0,self.display_screen.h-self.display_screen.h/7,DDGREY)
+        self.c_text = draw_text('INSTANT MESSAGING',12,True,WHITE)
+        self.close_button = button(self.display_screen,'x',startpos=(self.top_bar.w-self.top_bar.w/8 + self.display_screen.x,self.display_screen.y),size=(self.top_bar.w/8,self.top_bar.h),text_color=RED,color=DDGREY,font_size=15,bold = True)
+        self.type_text = draw_text(''.join(self.search_text),12,True,WHITE)
+        self.send_button = button(self.display_screen,'SEND',startpos=(self.bottom_bar.w-self.bottom_bar.w/4 + self.display_screen.x,self.display_screen.y + self.display_screen.h -self.bottom_bar.h),size=(self.bottom_bar.w/4,self.bottom_bar.h),text_color=WHITE,color=DDGREY,font_size=17,bold = False)
+        self.timer = 0
+        self.parse_text()
+    def draw(self,surface):
+        if self.timer == 5000:
+            self.timer = 0
+            self.chat_text = self.get_chat_text()
+            self.parse_text()
+        self.timer +=1
+        self.type_text = draw_text(''.join(self.search_text),12,True,WHITE)
+        if self.scrolling:
+            self.scroll_bar.y = (self.display_screen.h-self.scroll_bar_frame.h)/2 + self.display_screen.y + self.current -((self.scroll_y) - pygame.mouse.get_pos()[1])
+        else:
+            self.current = self.scroll_bar.y - (self.display_screen.y + self.scroll_bar_frame.y)
+        if self.scroll_bar.y < self.display_screen.y + self.scroll_bar_frame.y: 
+            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y
+        elif self.scroll_bar.y > self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h):
+            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)
+        self.display_screen.surface.blit(surface_object(self.display_screen.w,self.display_screen.h,0,0,DGREY).surface,(0,0))
+        total_size = self.top_bar.h
+        for x in self.text_list:
+            self.display_screen.surface.blit(x.surface,(10,total_size-(self.scroll_bar.y-(self.display_screen.y + self.scroll_bar_frame.y))))
+            total_size += x.height
         
+        self.display_screen.surface.blit(self.bottom_bar.surface,(0,self.display_screen.h-self.display_screen.h/7))
+        self.display_screen.surface.blit(self.top_bar.surface,(0,0))
+        self.display_screen.surface.blit(self.c_text.surface,(10,(self.top_bar.h-self.c_text.height)/2))
+        self.display_screen.surface.blit(self.type_text.surface,(10,(self.bottom_bar.h-self.c_text.height)/2+self.bottom_bar.y))
+        self.display_screen.surface.blit(self.scroll_bar_frame.surface,(self.scroll_bar_frame.x,self.scroll_bar_frame.y))
+        surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
+        surface.blit(self.scroll_bar.surface,(self.scroll_bar.x,self.scroll_bar.y))
+        self.close_button.draw(surface)
+        self.send_button.draw(surface)
+        if self.selected:
+            pygame.draw.rect(surface,RED,pygame.Rect(self.display_screen.x,self.display_screen.y,self.display_screen.w,self.display_screen.h),3)
+        else:
+            pygame.draw.rect(surface,DDWHITE,pygame.Rect(self.display_screen.x,self.display_screen.y,self.display_screen.w,self.display_screen.h),2)
+    def parse_text(self):
+        lens=0
+        self.text_list = []
+        if self.chat_text is not None:
+            for i,x in enumerate(self.chat_text):
+                text_color = DDWHITE
+                if ''.join(x[0]) == user_login:
+                    text_color = WHITE
+                for z in textwrap.wrap(''.join(x[0]) + ': ' +''.join(x[1]),width=28):
+                    self.text_list.append(draw_text(z,self.font_size,False,text_color))
+        for x in self.text_list:
+            lens+= x.height
+        self.scroll_bar_size = self.scroll_bar_frame.h /  lens
+        if self.scroll_bar_size > 1:
+            self.scroll_bar_size = 1
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.scroll_bar_frame.x+self.display_screen.x,self.scroll_bar_frame.y + self.display_screen.y,WHITE)
+    def get_chat_text(self):
+        return get_chat_log(self.user1,self.user2)
+    
+    def send_text_message(self):
+        msg = ''.join(self.search_text)
+        if msg != '' and msg != ' ':
+            send_message(self.user1,self.user2,msg)
+            self.search_text = []
+            self.chat_text = self.get_chat_text()
+            self.parse_text()
+
 class community_screen(main_frame):
     def __init__(self,parent):
         super().__init__(parent)
@@ -381,6 +504,7 @@ class community_screen(main_frame):
         self.search_bg = surface_object(self.w/2,50,(self.display_screen.w-self.w/2)/2,self.display_screen.h/20,DDGREY)
         self.text = draw_text('SEARCH:',30,True,WHITE)
         self.players_box = surface_object(self.w/2,self.h/1.2,(self.display_screen.w-self.w/2)/2,self.display_screen.h/7,DDGREY)
+        self.players_box.real_y = self.display_screen.h/7 + self.display_screen.y
         self.refresh_button = button(self.display_screen,'FIND',startpos = (self.search_bg.x + self.search_bg.w-105,self.display_screen.h/5),size=(100,40),color=DGREY)
         self.update_buttons()
     def draw(self,surface):
@@ -399,7 +523,7 @@ class community_screen(main_frame):
             x.surface.x,x.surface.y=self.players_box.x + 10,self.players_box.y + self.display_screen.y+ 210+((i)*110+10)-self.scroll_bar.y
             x.draw(self.players_box.surface)
         self.players_box.surface.blit(self.scroll_bar_frame.surface,(self.players_box.w/4*3.8,(self.players_box.h-self.scroll_bar_frame.h)/2))
-        self.display_screen.surface.blit(self.players_box.surface,(self.players_box.x,self.players_box.y))
+        self.display_screen.surface.blit(self.players_box.surface,(self.players_box.x,self.display_screen.h/7))
         self.display_screen.surface.blit(self.search_bg.surface,(self.search_bg.x,self.search_bg.y))
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
         surface.blit(self.text.surface,(self.search_bg.x+10,self.display_screen.h/5))
@@ -411,10 +535,10 @@ class community_screen(main_frame):
         for i,x in enumerate(get_players(''.join(self.search_text))):
             self.player_buttons.append(button(self.players_box.surface,x,center='LEFT',bold=True,font_size=40,color = DGREY
                                               ,startpos=(self.search_bg.x+10,self.display_screen.h/3.5+((i)*110+10)),size=(self.w/2.2,100),user=x))
-        self.scroll_bar_size = self.scroll_bar_frame.h / ((len(self.player_buttons))*110+10) 
+        self.scroll_bar_size = self.scroll_bar_frame.h /  (210 +(len(self.player_buttons))*280+10)
         if self.scroll_bar_size > 1:
             self.scroll_bar_size = 1
-        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.players_box.w/4*3.8 + self.players_box.x,self.display_screen.y +self.players_box.y + self.scroll_bar_frame.y,WHITE)
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.players_box.w/4*3.8 + self.players_box.x,self.players_box.y + self.scroll_bar_frame.y + 39,WHITE)
 
 
 class library_screen(main_frame):
@@ -460,7 +584,7 @@ class game_frame(main_frame):
         self.led_bg = surface_object(self.display_screen.w/1.2,50,(self.display_screen.w-self.display_screen.w/1.2)/2,600-self.move_val,DDGREY)
         self.led_text = draw_text('LEADERBOARDS',35,True,WHITE)
         
-        self.scroll_bar_frame = surface_object(self.w/70,self.h/1.3,self.x*6.3,(self.h - self.h/1.3)/2,SGREY)
+        self.scroll_bar_frame = surface_object(self.w/70,self.h/1.3,self.x*6.3,(self.display_screen.h - self.scroll_bar_frame.h)/2,SGREY)
         self.play_button = button(self.display_screen,'PLAY',text_color=WHITE,bold=True,font_size=60,startpos = ((self.display_screen.w+self.display_screen.w/15)/2,570-(self.scroll_y-163)),size=(self.display_screen.w/3,80),color=GREEN)
         self.image = pygame.image.load('materials/'+name+'.png')
         self.image = pygame.transform.scale(self.image,(int(self.bg_picture.w),int(self.bg_picture.h+190)))
@@ -468,17 +592,19 @@ class game_frame(main_frame):
         self.quicktype_scores = Leaderboard(user,to_run,'friends',parent,self.bg_leader.w,self.bg_leader.h
 
                                                    ,self.bg_leader.x,self.bg_leader.y,True)
-        self.scroll_bar_size = self.scroll_bar_frame.h / 1000
-        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.display_screen.w/4*3.8 + self.display_screen.x,self.display_screen.y +self.display_screen.y + self.scroll_bar_frame.y,WHITE)
+        self.scroll_bar_size = self.scroll_bar_frame.h / 4000
+        self.scroll_bar = surface_object(self.scroll_bar_frame.w,self.scroll_bar_frame.h*self.scroll_bar_size,self.display_screen.x + self.scroll_bar_frame.x,self.display_screen.y + self.scroll_bar_frame.y,WHITE)
     def draw(self,surface):
         if self.scrolling:
-            self.scroll_bar.y = self.display_screen.y + self.scroll_bar_frame.y + self.current -(self.scroll_y - pygame.mouse.get_pos()[1])
+            self.scroll_bar.y = (self.display_screen.h-self.scroll_bar_frame.h)/2 + self.display_screen.y + self.current -(self.scroll_y - pygame.mouse.get_pos()[1])
         else:
             self.current = self.scroll_bar.y - (self.display_screen.y + self.scroll_bar_frame.y)
-        if self.scroll_bar.y < self.display_screen.y + self.scroll_bar_frame.y + 11: 
-            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y +11
-        elif self.scroll_bar.y > self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)+ 11:
-            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)+ 11
+        if self.scroll_bar.y < self.display_screen.y + self.scroll_bar_frame.y: 
+            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y
+        elif self.scroll_bar.y > self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h):
+            self.scroll_bar.y  = self.display_screen.y + self.scroll_bar_frame.y + (self.scroll_bar_frame.h-self.scroll_bar.h)
+
+
         self.display_screen.surface.blit(surface_object(self.display_screen.w,self.display_screen.h,0,0,DGREY).surface,(0,0))
         self.bg_picture.surface.blit(self.image,(0,0))
         self.display_screen.surface.blit(self.bg_picture.surface,(self.bg_picture.x,90-(self.scroll_bar.y-163)))
@@ -495,8 +621,6 @@ class game_frame(main_frame):
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
         self.quicktype_scores.x,self.quicktype_scores.y = (self.display_screen.w-self.bg_leader.w)/2+self.display_screen.x,650-(self.scroll_bar.y-163)+self.display_screen.y
         self.quicktype_scores.draw()
-        
-        self.scroll_bar.y = self.scroll_y-(self.scroll_bar.h/2)
         surface.blit(self.scroll_bar.surface,(self.scroll_bar.x,self.scroll_bar.y))
         
 class profile_screen(main_frame):
@@ -839,5 +963,16 @@ while True:
                         del launch.community_menu.search_text[-1]
                 elif len(launch.community_menu.search_text) < 25:
                     launch.community_menu.search_text.append(chr(event.key))
+            if len(launch.chat_windows) != 0:
+                for x in launch.chat_windows:
+                    if x.selected:
+                        if event.key == pygame.K_BACKSPACE:
+                            if len(x.search_text) > 0:
+                                del x.search_text[-1]
+                        elif len(x.search_text) < 20:
+                            ke = chr(event.key)
+                            if str(ke) in 'abcdefghijklmnopqrstuvwxyz. ':
+                                x.search_text.append(ke)
+
     pygame.display.update()
 

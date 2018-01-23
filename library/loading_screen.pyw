@@ -1,6 +1,5 @@
 import pygame,os
 import importlib
-import pip
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 #if pygame.QUIT in pygame.event.get(): pygame.quit();raise SystemExit;
@@ -98,7 +97,7 @@ change_text('LOGGING IN...')
 session_var = session_create().session
 pygame.quit()
 
-from .loginWindow import runLogin
-user_login = runLogin()
-#user_login = 'tim2'
+#from .loginWindow import runLogin
+#user_login = runLogin()
+user_login = 'tim'
 from .launcher_screen import *
