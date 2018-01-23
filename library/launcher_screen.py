@@ -434,7 +434,7 @@ class chat_window(main_frame):
         self.timer = 0
         self.parse_text()
     def draw(self,surface):
-        if self.timer == 5000:
+        if self.timer == 100:
             self.timer = 0
             self.chat_text = self.get_chat_text()
             self.parse_text()
@@ -468,7 +468,7 @@ class chat_window(main_frame):
         else:
             pygame.draw.rect(surface,DDWHITE,pygame.Rect(self.display_screen.x,self.display_screen.y,self.display_screen.w,self.display_screen.h),2)
     def parse_text(self):
-        lens=0
+        lens=1
         self.text_list = []
         if self.chat_text is not None:
             for i,x in enumerate(self.chat_text):
@@ -800,7 +800,7 @@ class profile_screen(main_frame):
     
     def check_buttons(self):
         if self.other_profile:
-            if self.add_friend_button.on_mouse_click() and not self.friends and not self.user in self.requests:
+            if self.add_friend_button.on_mouse_click() and not self.user in self.friends and not self.user in self.requests:
                 send_friend_request(self.user)
                 self.refresh_profile()
             elif self.add_friend_button.on_mouse_click() and self.user in self.friends:
