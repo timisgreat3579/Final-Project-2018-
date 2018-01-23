@@ -114,25 +114,6 @@ def accept_friend_request(friend):
 
 def decline_friend_request(friend):
     response = people_table.get_item(
-    Key={
-        'peopleid': friend
-        }
-    )
-    oldRequests = response['Item']['requests']
-    x = oldRequests.index(user_login)
-    del oldRequests[x]
-    
-    response = people_table.update_item(
-        Key={
-            'peopleid':friend
-        },
-        UpdateExpression="set " + 'requests' + " = :r",
-        ExpressionAttributeValues={
-            ':r': oldRequests,
-        }
-    )
-
-    response = people_table.get_item(
         Key={
             'peopleid': user_login
         }
@@ -155,40 +136,30 @@ def decline_friend_request(friend):
 def send_friend_request(friend):
     response = people_table.get_item(
         Key={
-            'peopleid': user_login
-        }
-    )
-        
-    oldRequests = response['Item']['requests']
-    oldRequests.append(friend)
-    
-    response = people_table.update_item(
-        Key={
-            'peopleid':user_login
-        },
-        UpdateExpression="set " + 'requests' + " = :r",
-        ExpressionAttributeValues={
-            ':r': oldRequests,
-        }
-    )
-
-    response = people_table.get_item(
-        Key={
             'peopleid': friend
-        }
-    )
+            }
+        )
+
     oldRequests = response['Item']['requests']
-    oldRequests.append(user_login)
-    
-    response = people_table.update_item(
-        Key={
-            'peopleid':friend
-        },
-        UpdateExpression="set " + 'requests' + " = :r",
-        ExpressionAttributeValues={
-            ':r': oldRequests,
-        }
-    )
+    oldFriends = response['Item']['friends']
+    if user_login not in oldRequests and user_login not in oldFriends:
+        response = people_table.get_item(
+            Key={
+                'peopleid': friend
+            }
+        )
+        oldRequests = response['Item']['requests']
+        oldRequests.append(user_login)
+        
+        response = people_table.update_item(
+            Key={
+                'peopleid':friend
+            },
+            UpdateExpression="set " + 'requests' + " = :r",
+            ExpressionAttributeValues={
+                ':r': oldRequests,
+            }
+        )
 
 def remove_friend(friend):
     pass
