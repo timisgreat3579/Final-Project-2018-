@@ -87,7 +87,7 @@ change_text('CHECKING PIP')
 
 if importlib.find_loader('pip') is None:
     from .getpip import *
-
+import pip
 change_text('CHECKING BOTO')
 if importlib.find_loader('boto3') is None:
     change_text('INSTALLING BOTO')
@@ -97,7 +97,6 @@ change_text('LOGGING IN...')
 session_var = session_create().session
 pygame.quit()
 
-#from .loginWindow import runLogin
-#user_login = runLogin()
-user_login = 'tim'
+from .loginWindow import runLogin
+user_login = runLogin()
 from .launcher_screen import *
