@@ -260,10 +260,13 @@ class launcher():
                     i.update()
         if isinstance(self.frame_selected,profile_screen):
             self.frame_selected.check_buttons()
-            if self.frame_selected.back_button.on_mouse_click():
-                self.frame_selected = self.profile_menu
             if self.frame_selected.message_button.on_mouse_click():
                 self.chat_windows.append(chat_window(self.screen,user_login,self.frame_selected.user))
+            if self.frame_selected.back_button.on_mouse_click():
+                for x in self.main_buttons.button_list:
+                    x.selected = False
+                self.main_buttons.button_list[3].selected = True
+                self.frame_selected = self.community_menu
         if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
             game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '../games/'+self.game_screen.name)))
             sys.path.append(game_directory)
@@ -867,6 +870,9 @@ class profile_screen(main_frame):
         self.total_games = self.get_total_games()
         self.ranking_playtime = self.get_playtime_ranking()
         self.ranking_gamesplayed = self.get_gamesplayed_ranking()
+        self.average_score_recall = 0
+        self.average_score_quicktype = 0
+        self.average_score_golf = 0
         for x in get_players(''):
             self.average_score_recall += get_game_data('integerrecall','highscores',x)
             self.average_score_quicktype += get_game_data('quicktype','highscores',x)
