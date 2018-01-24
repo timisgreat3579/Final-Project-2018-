@@ -148,8 +148,50 @@ def update():
 
 # Displays the information screen
 def showInfoScreen():
-    pass
+    global win
+    win.fill(bg)
+    label = startfont1.render('How to Play',1,(255,255,255))
+    win.blit(label, (w_width/2 - label.get_width()/2, 20))
+    backBtn = button('< Back', 30, 130, 50, (40,40,40))
+    backBtn.draw(win, 15, w_height-65)
 
+    l = displayFont.render('In this game your focus will be tested and your', 1, (255,255,255))
+    win.blit(l, (20, 120))
+    l = displayFont.render('memory will be exercised. You will have exactly 1 ', 1, (255,255,255))
+    win.blit(l, (20, 160))
+    l = displayFont.render('minute to achieve the highest possible score. You', 1, (255,255,255))
+    win.blit(l, (20, 200))
+    l = displayFont.render('will earn points each time you remember a ', 1, (255,255,255))
+    win.blit(l, (20, 240))
+    l = displayFont.render('sequence correctly. The sequences will start short', 1, (255,255,255))
+    win.blit(l, (20, 280))
+    l = displayFont.render('and get progressively longer. Once you think you ', 1, (255,255,255))
+    win.blit(l, (20, 320))
+    l = displayFont.render('have memorized the sequence hit the next button', 1, (255,255,255))
+    win.blit(l, (20, 360))
+    l = displayFont.render('and enter the sequence. Good luck!', 1, (255,255,255))
+    win.blit(l, (20, 400))
+    pygame.display.update()
+
+    #wait for them to click to go back to start screen
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+            if event.type == pygame.MOUSEMOTION:
+                pos = pygame.mouse.get_pos()
+                if backBtn.isMouseOver(pos):
+                    backBtn.hover(win)
+                else:
+                    backBtn.update(win)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if backBtn.isMouseOver(pos):
+                    run = False
+
+    pass
 #This will show the underlines on the screen representing the amount of numbers to be typed in
 def spacedOut(se, guessed=[]):
     spacedWord = ''
