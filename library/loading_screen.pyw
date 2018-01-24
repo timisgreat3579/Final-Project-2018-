@@ -1,8 +1,10 @@
-import pygame,os
+import pygame,os, sys
 import importlib
+from configparser import ConfigParser
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 pygame.init()
 #if pygame.QUIT in pygame.event.get(): pygame.quit();raise SystemExit;
+user_login = ''
 
 class load_screen():
     def __init__(self):
@@ -99,4 +101,9 @@ pygame.quit()
 
 from .loginWindow import runLogin
 user_login = runLogin()
+
+file = open('./data/usr.txt', 'w')
+file.write(user_login)
+file.close()
+
 from .launcher_screen import *

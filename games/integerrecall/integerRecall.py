@@ -190,6 +190,17 @@ def endScreen():
             if event.type == pygame.KEYDOWN:
                 loop = False
 
+
+def backToLauncher():
+    leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    leader_dir = os.path.abspath(os.path.join(leader_dir, '../library'))
+    sys.path.append(leader_dir)
+    import library
+    import __init__
+    import launcher_screen
+    launcher_screen.begin()
+
+
 #Call this function to run the game
 def start(currentUser):
     global win, curUsr, best
@@ -222,7 +233,8 @@ def start(currentUser):
     #Init buttons to display on screen
     startBtn = button('Start Game', 30, 250, 50, (64,64,64))
     infoBtn = button('Learn to Play', 30, 250, 50, (64,64,64))
-    btns = [startBtn, infoBtn]
+    backBtn = button('< Back', 20, 100, 30, (64, 64, 64))
+    btns = [startBtn, infoBtn, backBtn]
     run = True
     #Create leaderboard objects
     globalTable = Leaderboard(curUsr, 'integerrecall', 'global', win, 300, 380, 150, 130)
@@ -238,6 +250,7 @@ def start(currentUser):
         win.blit(title, (w_width / 2 - title.get_width() / 2, 0))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)
+        backBtn.draw(win, 20, 20)
 
         #Waitr for user to click start
         for event in pygame.event.get():
@@ -257,6 +270,8 @@ def start(currentUser):
                     run = False
                 elif infoBtn.isMouseOver(pos):
                     showInfoScreen()
+                elif backBtn.isMouseOver(pos):
+                    backToLauncher()
         pygame.display.update()
 
     win.fill(bg)

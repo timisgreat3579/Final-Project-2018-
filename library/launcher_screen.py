@@ -1,16 +1,9 @@
 import pygame,os,pygame.gfxdraw,sys,os.path,textwrap
 from random import randint,randrange
-from .loading_screen import buffer,session_var,user_login
+from .loading_screen import buffer,session_var
 from .leaderboard import Leaderboard
 from .server_data import *
 
-
-os.environ['SDL_VIDEO_CENTERED'] = '1'
-pygame.init()
-screen = pygame.display.set_mode((1280,720),pygame.NOFRAME)
-
-buffer(screen,0,0,'AUTHENTICATING...',200).draw(screen)
-pygame.display.flip()
 
 DGREY = (60,60,60)
 SGREY = (70,70,70)
@@ -260,13 +253,10 @@ class launcher():
                     i.update()
         if isinstance(self.frame_selected,profile_screen):
             self.frame_selected.check_buttons()
+            if self.frame_selected.back_button.on_mouse_click():
+                self.frame_selected = self.profile_menu
             if self.frame_selected.message_button.on_mouse_click():
                 self.chat_windows.append(chat_window(self.screen,user_login,self.frame_selected.user))
-            if self.frame_selected.back_button.on_mouse_click():
-                for x in self.main_buttons.button_list:
-                    x.selected = False
-                self.main_buttons.button_list[3].selected = True
-                self.frame_selected = self.community_menu
         if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
             game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '../games/'+self.game_screen.name)))
             sys.path.append(game_directory)
@@ -870,9 +860,6 @@ class profile_screen(main_frame):
         self.total_games = self.get_total_games()
         self.ranking_playtime = self.get_playtime_ranking()
         self.ranking_gamesplayed = self.get_gamesplayed_ranking()
-        self.average_score_recall = 0
-        self.average_score_quicktype = 0
-        self.average_score_golf = 0
         for x in get_players(''):
             self.average_score_recall += get_game_data('integerrecall','highscores',x)
             self.average_score_quicktype += get_game_data('quicktype','highscores',x)
@@ -1086,38 +1073,58 @@ class button_grouper():
                 z.selected = True
                 return z.parent_frame
         return p_frame
+    
+user = ''
+user_login = ''
+def begin():
+    global user, user_login, screen
+    file = open('./data/usr.txt', 'r')
+    for line in file:
+        user_login = line
+            
+    file.close()
+    print(user_login)
 
-session = session_var
-user = user_login
-launch = launcher(screen)
 
-while True:
-    screen.fill((0,0,0))
-    launch.draw(screen)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            raise SystemExit
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            launch.check_buttons()
-        if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEBUTTONUP:
-            launch.check_scroll(event.type)
-        elif event.type == pygame.KEYDOWN:
-            if isinstance(launch.frame_selected,community_screen):
-                if event.key == pygame.K_BACKSPACE:
-                    if len(launch.community_menu.search_text) > 0:
-                        del launch.community_menu.search_text[-1]
-                elif len(launch.community_menu.search_text) < 25:
-                    launch.community_menu.search_text.append(chr(event.key))
-            if len(launch.chat_windows) != 0:
-                for x in launch.chat_windows:
-                    if x.selected:
-                        if event.key == pygame.K_BACKSPACE:
-                            if len(x.search_text) > 0:
-                                del x.search_text[-1]
-                        elif len(x.search_text) < 20:
-                            ke = chr(event.key)
-                            if str(ke) in 'abcdefghijklmnopqrstuvwxyz. ':
-                                x.search_text.append(ke)
+    os.environ['SDL_VIDEO_CENTERED'] = '1'
+    pygame.init()
+    screen = pygame.display.set_mode((1280,720),pygame.NOFRAME)
 
-    pygame.display.update()
+    buffer(screen,0,0,'AUTHENTICATING...',200).draw(screen)
+    pygame.display.flip()
+    session = session_var
+    user = user_login
+    launch = launcher(screen)
+
+    while True:
+        screen.fill((0,0,0))
+        launch.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                raise SystemExit
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                launch.check_buttons()
+            if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEBUTTONUP:
+                launch.check_scroll(event.type)
+            elif event.type == pygame.KEYDOWN:
+                if isinstance(launch.frame_selected,community_screen):
+                    if event.key == pygame.K_BACKSPACE:
+                        if len(launch.community_menu.search_text) > 0:
+                            del launch.community_menu.search_text[-1]
+                    elif len(launch.community_menu.search_text) < 25:
+                        launch.community_menu.search_text.append(chr(event.key))
+                if len(launch.chat_windows) != 0:
+                    for x in launch.chat_windows:
+                        if x.selected:
+                            if event.key == pygame.K_BACKSPACE:
+                                if len(x.search_text) > 0:
+                                    del x.search_text[-1]
+                            elif len(x.search_text) < 20:
+                                ke = chr(event.key)
+                                if str(ke) in 'abcdefghijklmnopqrstuvwxyz. ':
+                                    x.search_text.append(ke)
+
+        pygame.display.update()
+begin()
+
