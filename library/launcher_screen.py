@@ -196,13 +196,14 @@ class launcher():
         self.user_text = draw_text('Welcome, ' + user.upper() +'!',17,False,WHITE)
         
         self.home_menu = home_screen(self.screen)
+        self.frame_selected = self.home_menu
         self.library_menu = library_screen(self.screen)
         self.stats_menu = stats_screen(self.screen)
         self.profile_menu = profile_screen(self.screen,user_login)
         self.community_menu = community_screen(self.screen)
         self.main_buttons = button_grouper(self.top_bar,['HOME','LIBRARY','PROFILE','COMMUNITY','GLOBAL STATS']
                                            ,button,frames=[self.home_menu,self.library_menu,self.profile_menu,self.community_menu,self.stats_menu],pos=(0,self.top_bar.h/2),sizes=(0,self.top_bar.h/2),centerx = True)
-        
+        self.main_buttons.button_list[0].selected = True
         self.close_button = button(self.screen,'x',startpos=(self.top_bar.w-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=15,bold = True)
         self.enlarge_button = button(self.screen,'□',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=15,bold = False)
         self.minimize_button = button(self.screen,'-',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=16,bold = True)
