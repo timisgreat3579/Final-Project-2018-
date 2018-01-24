@@ -1000,7 +1000,7 @@ class button():
         if self.image is not None:
             self.text = ''
             self.image = pygame.image.load('./materials/'+self.image)
-            self.image = pygame.transform.scale(self.image,(self.w//2,self.h//2))
+            self.image = pygame.transform.scale(self.image,(self.w,self.h))
     def draw(self,target,custom=False):
         self.font = pygame.font.SysFont('tahoma',self.font_size,self.bold)
         if self.on_mouse_hover() and not self.friends:
@@ -1021,7 +1021,7 @@ class button():
         elif self.center == 'LEFT':
             self.center = self.surface.w/20
         if self.image is not None:
-            self.surface.surface.blit(self.image,((self.w - self.w/2)/2,(self.h - self.h/2)/2))
+            self.surface.surface.blit(self.image,(0,0))
         self.surface.surface.blit(self.text_surface,(self.center,(self.surface.h-self.text_surface.get_height())/2))
         if custom:
             target.blit(self.surface.surface,(self.x-self.parent.x,self.y-self.parent.y))
