@@ -3,7 +3,7 @@ from random import randint,randrange
 from .loading_screen import buffer,session_var
 from .leaderboard import Leaderboard
 from .server_data import *
-
+pygame.init()
 
 DGREY = (60,60,60)
 SGREY = (70,70,70)
@@ -15,6 +15,7 @@ WHITE = (255,255,255)
 DWHITE = (200,200,200)
 DDWHITE = (150,150,150)
 BLUE = (29, 104, 224)
+
 
 
 class random_stars(object):
@@ -1078,12 +1079,17 @@ user = ''
 user_login = ''
 def begin():
     global user, user_login, screen
+    pygame.init()
+
+    file = open('./data/session.txt', 'w')
+    file.write('0')
+    file.close()
+
     file = open('./data/usr.txt', 'r')
     for line in file:
         user_login = line
             
     file.close()
-    print(user_login)
 
 
     os.environ['SDL_VIDEO_CENTERED'] = '1'

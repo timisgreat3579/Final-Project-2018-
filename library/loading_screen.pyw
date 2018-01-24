@@ -100,10 +100,16 @@ session_var = session_create().session
 pygame.quit()
 
 from .loginWindow import runLogin
-user_login = runLogin()
+file = open('./data/session.txt', 'r')
+for line in file:
+    us = line
 
-file = open('./data/usr.txt', 'w')
-file.write(user_login)
-file.close()
+if us == '0':
+    user_login = runLogin()
+
+    file = open('./data/usr.txt', 'w')
+    file.write(user_login)
+    file.close()
+
 
 from .launcher_screen import *

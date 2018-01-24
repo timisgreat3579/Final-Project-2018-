@@ -232,10 +232,13 @@ def backToLauncher():
     leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     leader_dir = os.path.abspath(os.path.join(leader_dir, '../library'))
     sys.path.append(leader_dir)
-    import library
-    import __init__
-    import launcher_screen
-    launcher_screen.begin()
+    from pathlib import Path
+    p = Path(__file__).parents[2]
+    file = open(str(p) + '\data\session.txt', 'w')
+    file.write('1')
+    file.close()
+    pygame.quit()
+    os.system('python run.pyw')
 
 #pass the string user name of the current user so that we can access their information
 def start(currentUser):

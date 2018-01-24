@@ -18,6 +18,8 @@ sys.path.append(leader_dir)
 import leaderboard
 from leaderboard import Leaderboard
 
+pygame.init()
+
 game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '')))
 game_directory = os.path.abspath(os.path.join(game_directory, ''))
 sys.path.append(game_directory)
@@ -195,10 +197,13 @@ def backToLauncher():
     leader_dir = (os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
     leader_dir = os.path.abspath(os.path.join(leader_dir, '../library'))
     sys.path.append(leader_dir)
-    import library
-    import __init__
-    import launcher_screen
-    launcher_screen.begin()
+    from pathlib import Path
+    p = Path(__file__).parents[2]
+    file = open(str(p) + '\data\session.txt', 'w')
+    file.write('1')
+    file.close()
+    pygame.quit()
+    os.system('python run.pyw')
 
 
 #Call this function to run the game

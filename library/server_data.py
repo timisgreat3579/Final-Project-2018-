@@ -1,9 +1,18 @@
-from .loading_screen import session_var,user_login
 from configparser import ConfigParser
 from boto3.dynamodb.conditions import Key, Attr
+import boto3
 
-session = session_var
+session = boto3.resource('dynamodb',
+                         aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
+                         aws_secret_access_key='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',
+                         region_name="ca-central-1"
+                         )
 people_table = session.Table('people')
+
+file = open('./data/usr.txt', 'r')
+for line in file:
+    user_login = line
+file.close()
 
 def get_players(query):
     response = people_table.scan()
