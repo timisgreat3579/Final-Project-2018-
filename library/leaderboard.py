@@ -1,3 +1,12 @@
+#HEADER COMMENT FOR LEADERBOARD CLASS BY TIM RUSCICA
+# This class is used to display the leaderboard tables you see
+# in the games and in the launcher.It has two main types of leaderboards
+# and two variations of those types. Type 1 is the friend leaderboard which
+# shows only the users friends. Type 2, the global leaderboard shows the top users
+# for the given game. For each of these types you can have a three column table or
+# a 5 column grid. The three column grid shows (Rank,User,Score), while the 5 column
+# table shows (Rank, User, Score, Time Played, Games Played)
+
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 from botocore.exceptions import ClientError
@@ -170,10 +179,16 @@ class Leaderboard(object):
                             topScore.append(score)
                             topName.append(name)
                         else:
-                            if score > min(topScore):
-                                ind = topScore.index(min(topScore))
-                                topScore[ind] = score
-                                topName[ind] = name
+                            if not(self.game == 'quicktype'):
+                                if score > min(topScore):
+                                    ind = topScore.index(min(topScore))
+                                    topScore[ind] = score
+                                    topName[ind] = name
+                            else:
+                                if score < max(topScore):
+                                    ind = topScore.index(max(topScore))
+                                    topScore[ind] = score
+                                    topName[ind] = name
                 except:
                     print('no highscore exsists')
 
@@ -205,10 +220,16 @@ class Leaderboard(object):
                         topScore.append(score)
                         topName.append(name)
                     else:
-                        if score > min(topScore):
-                            ind = topScore.index(min(topScore))
-                            topScore[ind] = score
-                            topName[ind] = name
+                        if not (self.game == 'quicktype'):
+                            if score > min(topScore):
+                                ind = topScore.index(min(topScore))
+                                topScore[ind] = score
+                                topName[ind] = name
+                        else:
+                            if score < max(topScore):
+                                ind = topScore.index(max(topScore))
+                                topScore[ind] = score
+                                topName[ind] = name
 
         self.grid = menu(self.win, self.width, self.height, self.cols, self.rows+2, self.showGrid, self.x, self.y)
         self.grid.bg = self.textColor
@@ -320,14 +341,15 @@ class Leaderboard(object):
         self.text = nList
 
     #Call this method to display the leaderboard on the screen
-    def draw(self, line=(255,255,255)):
-        #font = pygame.font.SysFont('freesansbold', 25)
-        #if self.type == 'global':
-        #    label = font.render('Global Leaderboard',1,line)
-        #else:
-        #    label = font.render('Friend Leaderboard', 1, line)
-        #self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
-        #pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
+    def draw(self, line=(255,255,255), title=False):
+        if title:
+            font = pygame.font.SysFont('freesansbold', 25)
+            if self.type == 'global':
+                label = font.render('Global Leaderboard',1,line)
+            else:
+                label = font.render('Friend Leaderboard', 1, line)
+            self.grid.screen.blit(label, (self.x + self.width/2 - label.get_width()/2,self.y - 30 + (15 - label.get_height()/2 )))
+            pygame.draw.rect(self.grid.screen,line, (self.x, self.y -30,self.width, 30), 1)
 
         self.grid.startx,self.grid.starty = self.x,self.y
         self.grid.draw(line)
@@ -343,7 +365,7 @@ class Leaderboard(object):
     def font(self, font, size):
         self.grid.font(font, size)
 
-
+#Function to add time played to amazon ws table
 def addTimePlayed(usr, game, ntime):
     global session, window
     ntime = round(ntime/60,1)
@@ -364,6 +386,7 @@ def addTimePlayed(usr, game, ntime):
         }
     )
 
+#Function to add games played to amazon ws table
 def addGamesPlayed(usr, game):
     global session, window
     table = session.Table('games_played')
@@ -383,7 +406,7 @@ def addGamesPlayed(usr, game):
         }
     )
 
-
+#Function to add highscore to amazon ws table
 def addHighscore(usr, game, score):
     global table, session, window
     table = session.Table('highscores')
