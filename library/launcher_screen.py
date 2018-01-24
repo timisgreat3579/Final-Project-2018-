@@ -159,13 +159,13 @@ class display_buttons():
         self.decline_buttons = []
         for i,x in enumerate(get_table_data(self.index)):
             if self.index == 'requests':
-                b1 = ['y',GREEN]
-                b2 = ['x',RED]
+                b1 = ['y',GREEN,'checkmark.png']
+                b2 = ['x',RED,'x.png']
             else:
-                b1 = ['C',WHITE]
-                b2 = ['P',WHITE]
-            self.accept_buttons.append(button(self.background,b1[0],center='CENTER',bold=True,font_size=20,color = DDDGREY,text_color = b1[1],startpos=(self.x+10 + self.w/1.2 - 45*2,((self.y+((i)*80+10)))/2),size=(45,45),friends = False,outline=False,user=x))
-            self.decline_buttons.append(button(self.background,b2[0],center='CENTER',bold=True,font_size=20,color = DDDGREY,text_color = b2[1],startpos=(self.x+10 + self.w/1.2 - 45,((self.y+((i)*80+10)))/2),size=(45,45),friends = False,outline=False,user=x))
+                b1 = ['C',WHITE,'message.png']
+                b2 = ['P',WHITE,'profile.png']
+            self.accept_buttons.append(button(self.background,b1[0],center='CENTER',bold=True,font_size=20,color = DDDGREY,text_color = b1[1],startpos=(self.x+10 + self.w/1.2 - 45*2,((self.y+((i)*80+10)))/2),size=(45,45),friends = False,outline=False,user=x,image = b1[2]))
+            self.decline_buttons.append(button(self.background,b2[0],center='CENTER',bold=True,font_size=20,color = DDDGREY,text_color = b2[1],startpos=(self.x+10 + self.w/1.2 - 45,((self.y+((i)*80+10)))/2),size=(45,45),friends = False,outline=False,user=x,image = b2[2]))
                 
             self.player_buttons.append(button(self.background,x,center='LEFT',bold=True,font_size=20
                                               ,color = DDGREY
@@ -208,7 +208,8 @@ class launcher():
         self.enlarge_button = button(self.screen,'□',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=15,bold = False)
         self.minimize_button = button(self.screen,'-',startpos=(self.top_bar.w-self.top_bar.w/25-self.top_bar.w/25-self.top_bar.w/25,0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=16,bold = True)
 
-        self.friends_button = button(self.screen,'FRIENDS',startpos=(self.top_bar.w-(self.top_bar.w/25*4),0),size=(self.top_bar.w/25,self.top_bar.h/4),text_color=DDWHITE,color=DDGREY,font_size=10,bold = True)
+        self.friends_button = button(self.screen,'FRIENDS',startpos=(self.top_bar.w-(self.top_bar.w/25*4),0)
+                                     ,size=(40,40),text_color=DDWHITE,color=DDGREY,font_size=10,bold = True,image = 'friends_icon.png')
         self.chat_bar = None
         ##FRIENDS WINDOW
         self.friends_window = popup_window_friend()
@@ -261,20 +262,19 @@ class launcher():
             self.frame_selected.check_buttons()
             if self.frame_selected.back_button.on_mouse_click():
                 self.frame_selected = self.profile_menu
+            if self.frame_selected.message_button.on_mouse_click():
+                self.chat_windows.append(chat_window(self.screen,user_login,self.frame_selected.user))
         if isinstance(self.frame_selected,library_screen) and self.game_screen is not None:
             game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '../games/'+self.game_screen.name)))
-            #game_directory = os.path.abspath(os.path.join(game_directory, '../games/'+self.game_screen.name))
             sys.path.append(game_directory)
             if self.game_screen.name == 'quicktype' and self.game_screen.play_button.on_mouse_click():
                 import reactionGame
-                print(user_login)
-                start(user_login)
+                reactionGame.start(user_login)
             elif self.game_screen.name == 'integerrecall' and self.game_screen.play_button.on_mouse_click():
                 import integerRecall
                 integerRecall.start(user_login)
             elif self.game_screen.name == 'golfgame' and self.game_screen.play_button.on_mouse_click():
-                import main
-                main.start(user_login)
+                pass
         if self.minimize_button.on_mouse_click():
             pygame.display.iconify()
         if self.close_button.on_mouse_click():
@@ -505,12 +505,12 @@ class chat_window(main_frame):
         self.scroll_y = 0
         self.current = 0
         self.search_text = []
-        self.display_screen = surface_object(220,250,(self.parent.get_width()-230)/2,(self.parent.get_height()-300)/2,DGREY,alpha = 255)
+        self.display_screen = surface_object(220,250,(self.parent.get_width()-230)/2,(self.parent.get_height()-300)/2,DGREY,alpha = 230)
         self.scroll_bar_frame = surface_object(self.display_screen.w/20,self.display_screen.h/1.5,self.display_screen.w - self.display_screen.w/20 * 2,(self.display_screen.h - self.display_screen.h/1.5)/2,SGREY)
         self.scroll_bar = surface_object(self.scroll_bar_frame.w,50,self.scroll_bar_frame.x+self.display_screen.x,self.scroll_bar_frame.y + self.display_screen.y,WHITE)
         self.top_bar = surface_object(self.display_screen.w,self.display_screen.h/10,0,0,DDGREY)
         self.bottom_bar = surface_object(self.display_screen.w,self.display_screen.h/7,0,self.display_screen.h-self.display_screen.h/7,DDGREY)
-        self.c_text = draw_text('INSTANT MESSAGING',12,True,WHITE)
+        self.c_text = draw_text('IMS: ' + self.user2.upper(),12,True,WHITE)
         self.close_button = button(self.display_screen,'x',startpos=(self.top_bar.w-self.top_bar.w/8 + self.display_screen.x,self.display_screen.y),size=(self.top_bar.w/8,self.top_bar.h),text_color=RED,color=DDGREY,font_size=15,bold = True)
         self.type_text = draw_text(''.join(self.search_text),12,True,WHITE)
         self.send_button = button(self.display_screen,'SEND',startpos=(self.bottom_bar.w-self.bottom_bar.w/4 + self.display_screen.x,self.display_screen.y + self.display_screen.h -self.bottom_bar.h),size=(self.bottom_bar.w/4,self.bottom_bar.h),text_color=WHITE,color=DDGREY,font_size=17,bold = False)
@@ -712,6 +712,9 @@ class profile_screen(main_frame):
         self.user = user
         self.screen = None
         self.move_val = 0
+        self.average_score_quicktype = 0
+        self.average_score_recall = 0
+        self.average_score_golf = 0
         self.other_profile = other_profile
         self.playtime_texts = []
         self.gamesplayed_texts = []
@@ -766,14 +769,17 @@ class profile_screen(main_frame):
         self.refresh_button = button(self.display_screen,'REFRESH',startpos = ((self.display_screen.w-200)/2
                                                                                ,self.display_screen.h+27)
                                      ,size=(200,50))
-
         self.refresh_profile()
         self.total_playtext = draw_text('TOTAL PLAYTIME: ' +str(self.total_playtime) + ' hours',25,True,WHITE)
         self.total_gametext = draw_text('TOTAL GAMES PLAYED: ' +str(self.total_games),25,True,WHITE)
 
-        self.playtime_avg = draw_text('GAME PLAYTIME RANKING',20,False,WHITE)
-        self.globalscore_avg = draw_text('SCORE VS GLOBAL AVERAGE',20,False,WHITE)
-        self.gamesplayed_avg = draw_text('GAMES PLAYED RANKING',20,False,WHITE)
+        self.playtime_avg = draw_text('GAME PLAYTIME RANKING',20,True,WHITE)
+        self.globalscore_avg = draw_text('SCORE VS GLOBAL AVERAGE',20,True,WHITE)
+        self.gamesplayed_avg = draw_text('GAMES PLAYED RANKING',20,True,WHITE)
+
+        self.game1 = draw_text('INTEGER RECALL',18,True,WHITE)
+        self.game2 = draw_text('QUICKTYPE',18,True,WHITE)
+        self.game3 = draw_text('GOLF GAME',18,True,WHITE)
         #self.playtime_texts.append(draw_text("{0:.<20} {1:.>20}".format(str((i+1))+'. '+x[0].upper()+':', str(x[1])+ ' h'),20,False,WHITE))
         for i,x in enumerate(self.ranking_playtime):
             self.playtime_texts.append(draw_text(str((i+1))+'. '+x[0].upper() + ' -- ' + str(x[1]) +' hours',20,False,WHITE))
@@ -815,7 +821,14 @@ class profile_screen(main_frame):
         self.display_screen.surface.blit(self.game2_score_bg.surface
                                          ,(self.display_screen.w - self.display_screen.w/1.5,305+self.move_val))
         self.display_screen.surface.blit(self.game3_score_bg.surface
-                                         ,(self.display_screen.w - self.display_screen.w/1.5,355+self.move_val))        
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,355+self.move_val))    
+        
+        self.display_screen.surface.blit(self.game1_score_bg_compare.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,255+self.move_val))
+        self.display_screen.surface.blit(self.game2_score_bg_compare.surface
+                                         ,(self.display_screen.w - self.display_screen.w/1.5,305+self.move_val))
+       # self.display_screen.surface.blit(self.game3_score_bg_compare.surface
+        #                                 ,(self.display_screen.w - self.display_screen.w/1.5,355+self.move_val))       
 
         self.display_screen.surface.blit(self.scoretitle_bg.surface
                                          ,(self.display_screen.w - self.display_screen.w/1.5,210+self.move_val))
@@ -825,6 +838,10 @@ class profile_screen(main_frame):
         self.display_screen.surface.blit(self.playtime_avg.surface,(self.display_screen.w/9,215+self.move_val))
         self.display_screen.surface.blit(self.globalscore_avg.surface,(self.display_screen.w/2.5,215+self.move_val))
         self.display_screen.surface.blit(self.gamesplayed_avg.surface,(self.display_screen.w/1.42,215+self.move_val))
+
+        self.display_screen.surface.blit(self.game1.surface,(self.display_screen.w/2.28,262+self.move_val))
+        self.display_screen.surface.blit(self.game2.surface,(self.display_screen.w/2.2,312+self.move_val))
+        self.display_screen.surface.blit(self.game3.surface,(self.display_screen.w/2.2,362+self.move_val))
         for i,x in enumerate(self.playtime_texts):
             self.display_screen.surface.blit(x.surface,(self.display_screen.w/11,260+self.move_val+(i*50)))
 
@@ -843,17 +860,49 @@ class profile_screen(main_frame):
 
         
     def refresh_profile(self):
+        temp = 0
         self.friends = get_table_data('friends')
         self.requests = get_table_data('requests')
         self.total_playtime = self.get_total_hours()
         self.total_games = self.get_total_games()
         self.ranking_playtime = self.get_playtime_ranking()
         self.ranking_gamesplayed = self.get_gamesplayed_ranking()
+        for x in get_players(''):
+            self.average_score_recall += get_game_data('integerrecall','highscores',x)
+            self.average_score_quicktype += get_game_data('quicktype','highscores',x)
+            self.average_score_golf += get_game_data('golf','highscores',x)
+        temp = len(get_players(''))
+        score1=  get_game_data('integerrecall','highscores',self.user)
+        if score1 == 0:
+            score1 = 1
+        score2 = get_game_data('quicktype','highscores',self.user)
+        score3 = get_game_data('golf','highscores',self.user)
+        self.average_score_recall = self.average_score_recall / temp
+        self.average_score_quicktype = self.average_score_quicktype / temp
+        if self.average_score_quicktype ==0:
+            self.average_score_quicktype = 1
+        self.average_score_golf = self.average_score_golf / temp
+        if self.average_score_golf ==0:
+            self.average_score_golf = 1
         if self.other_profile:
             if self.user in self.friends:
                 self.add_friend_button.text = 'UNFRIEND'
                 self.add_friend_button.text_color = DDWHITE
-
+        temp2 = 0
+        if self.average_score_recall / score1 > 1:
+            temp2 = 0
+        else:
+            temp2 = self.average_score_recall / score1
+        self.game1_score_bg_compare = surface_object((temp2) * self.display_screen.w/3+ 1,35
+                                       ,self.display_screen.w/70,40,BLUE)
+        if score2 / self.average_score_quicktype > 1:
+            temp2 = 0
+        else:
+            temp2 = score2 / self.average_score_quicktype
+        self.game2_score_bg_compare = surface_object((temp2 ) * self.display_screen.w/3+ 1,35
+                                       ,self.display_screen.w/70,40,BLUE)
+        #self.game3_score_bg_compare = surface_object((self.average_score_golf)/(score3) / self.display_screen.w/3 + 1,35
+        #                               ,self.display_screen.w/70,40,BLUE)
         self.display_screen.surface.blit(surface_object(self.display_screen.w,self.display_screen.h,0,0,DGREY).surface,(0,0))
     def get_total_hours(self):
         mins=0
@@ -947,11 +996,18 @@ class button():
         self.style = style
         self.surface = surface_object(self.w,self.h,self.x,self.y,self.color)
         self.selected = False
+        self.image = image
+        if self.image is not None:
+            self.text = ''
+            self.image = pygame.image.load('./materials/'+self.image)
+            self.image = pygame.transform.scale(self.image,(self.w//2,self.h//2))
     def draw(self,target,custom=False):
         self.font = pygame.font.SysFont('tahoma',self.font_size,self.bold)
         if self.on_mouse_hover() and not self.friends:
             self.text_surface = self.font.render(self.text,True,DWHITE)
             self.surface.set_color(SGREY)
+            if self.image is not None:
+                 pygame.draw.rect(target,WHITE,pygame.Rect(self.surface.x,self.surface.y,self.surface.w,self.surface.h),1) 
         else:
             self.text_surface = self.font.render(self.text,True,self.text_color)
             self.surface.set_color(self.color)
@@ -964,7 +1020,8 @@ class button():
             self.center = self.surface.w-self.text_surface.get_width()
         elif self.center == 'LEFT':
             self.center = self.surface.w/20
-            
+        if self.image is not None:
+            self.surface.surface.blit(self.image,((self.w - self.w/2)/2,(self.h - self.h/2)/2))
         self.surface.surface.blit(self.text_surface,(self.center,(self.surface.h-self.text_surface.get_height())/2))
         if custom:
             target.blit(self.surface.surface,(self.x-self.parent.x,self.y-self.parent.y))
