@@ -46,13 +46,29 @@ def get_chat_log(primary_user,secondary_user):
 
 def create_chat_session(primary_user,secondary_user):
     chat_table = session.Table('chat_sessions')
-    response = chat_table.put_item(
+    resposnse = chat_table.put_item(
            Item={
                 'users': primary_user+','+secondary_user,
                 'chat_log':[]
                 }
         )
     return None
+
+def get_launcher_settings():
+    launcher_table = session.Table('launcher')
+    playerofweek = ''
+    news1=[]
+    news2=[]
+    news3=[]
+    response = launcher_table.scan()
+    names = []
+    for i in response['Items']:
+        playerofweek = i['playerofweek']
+        news1 = i['news1']
+        news2 = i['news2']
+        news3 = i['news3']
+    return playerofweek,news1,news2,news3
+
 
 def send_message(primary_user,secondary_user,message_to_send):
     chat_table = session.Table('chat_sessions')

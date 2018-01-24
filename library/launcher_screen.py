@@ -1,4 +1,4 @@
-import pygame,os,pygame.gfxdraw,sys,os.path
+import pygame,os,pygame.gfxdraw,sys,os.path,textwrap
 from random import randint,randrange
 from .loading_screen import buffer,session_var,user_login
 from .leaderboard import Leaderboard
@@ -153,7 +153,6 @@ class display_buttons():
         surface.blit(self.background.surface,(self.x,round(self.h/6+33)))
         self.scroll_bar.x = 900+self.w - (self.w/20*2)
         surface.blit(self.scroll_bar.surface,(self.scroll_bar.x,self.scroll_bar.y))
-    ######################    
     def update_buttons(self):
         self.player_buttons = []
         self.accept_buttons = []
@@ -196,7 +195,7 @@ class launcher():
 
         self.user_text = draw_text('Welcome, ' + user.upper() +'!',17,False,WHITE)
         
-        self.home_menu = main_frame(self.screen)
+        self.home_menu = home_screen(self.screen)
         self.library_menu = library_screen(self.screen)
         self.stats_menu = stats_screen(self.screen)
         self.profile_menu = profile_screen(self.screen,user_login)
@@ -399,8 +398,98 @@ class main_frame():
     def draw(self,surface):
         surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
 
+class home_screen(main_frame):
+    def __init__(self,parent):
+        super().__init__(parent)
+        self.game_text = draw_text("WELCOME TO THE COMMUNITY",30,True,WHITE)
+        self.player_size = 0
+        self.news1=self.news2=self.news3 = []
+        self.title1=self.title2=self.title3 =self.playerofweek= ''
 
-import textwrap
+        self.bg_title = surface_object(self.display_screen.w/1.2,50
+                                       ,(self.display_screen.w-self.display_screen.w/1.2)/2,7,DDGREY)
+
+        self.bg_title2 = surface_object(self.display_screen.w/1.7,35
+                                       ,(self.display_screen.w-self.display_screen.w/1.2)/2,7,DDGREY)
+
+        self.bg_title3 = surface_object(self.display_screen.w/1.7,35
+                                       ,(self.display_screen.w-self.display_screen.w/1.2)/2,7,DDGREY)
+
+        self.section1 = surface_object(300,350
+                                       ,150,150,DDGREY)
+
+        self.section2 = surface_object(300,350
+                                       ,(self.display_screen.w-300)/2,150,DDGREY)
+
+        self.section3 = surface_object(300,350
+                                       ,self.display_screen.w-450,150,DDGREY)
+
+        self.refresh_button = button(self.display_screen,'REFRESH',startpos = ((self.display_screen.w-200)/2
+                                                                               ,661),size=(200,50))
+        self.get_profile_stats()
+        self.par_title1 = draw_text(self.title1,20,True,WHITE)
+        self.par_title2 = draw_text(self.title2,20,True,WHITE)
+        self.par_title3 = draw_text(self.title3,20,True,WHITE)
+        self.game_text2 = draw_text("PLAYER OF THE WEEK: " + self.playerofweek.upper(),21,False,WHITE)
+        self.game_text3 = draw_text("COMMUNITY SIZE: " + str(self.player_size),21,False,WHITE)
+    def draw(self,surface):
+        self.display_screen.surface.blit(self.bg_title.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.2)/2,25))
+
+        self.display_screen.surface.blit(self.bg_title2.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.7)/2,95))
+
+        self.display_screen.surface.blit(self.bg_title3.surface
+                                         ,((self.display_screen.w-self.display_screen.w/1.7)/2,520))
+
+        self.display_screen.surface.blit(self.game_text.surface
+                                         ,((self.display_screen.w-self.game_text.width)/2,30))
+        self.display_screen.surface.blit(self.game_text2.surface
+                                         ,((self.display_screen.w-self.game_text2.width)/2,100))
+        self.display_screen.surface.blit(self.game_text3.surface
+                                         ,((self.display_screen.w-self.game_text3.width)/2,525))
+
+        self.display_screen.surface.blit(self.section1.surface
+                                         ,(self.section1.x,self.section1.y))
+        self.display_screen.surface.blit(self.section2.surface
+                                         ,(self.section2.x,self.section2.y))
+        self.display_screen.surface.blit(self.section3.surface
+                                         ,(self.section3.x,self.section3.y))
+
+        self.display_screen.surface.blit(self.par_title1.surface
+                                         ,(self.section1.x + (self.section1.w-self.par_title1.width)/2,self.section1.y+10))
+        self.display_screen.surface.blit(self.par_title2.surface
+                                         ,((self.display_screen.w-self.par_title2.width)/2,self.section2.y+10))
+        self.display_screen.surface.blit(self.par_title3.surface
+                                         ,(self.section3.x + (self.section3.w-self.par_title3.width)/2,self.section3.y+10))
+
+        for i,x in enumerate(self.news1):
+            self.display_screen.surface.blit(x.surface,(self.section1.x + 10,x.height*i + 40+ self.section1.y))
+        for i,x in enumerate(self.news2):
+            self.display_screen.surface.blit(x.surface,(self.section2.x + 10,x.height*i + 40+ self.section2.y))
+        for i,x in enumerate(self.news3):
+            self.display_screen.surface.blit(x.surface,(self.section3.x + 10,x.height*i + 40 + self.section3.y))
+        surface.blit(self.display_screen.surface,(self.display_screen.x,self.display_screen.y))
+        
+        self.refresh_button.draw(surface)
+
+    def get_profile_stats(self):
+        playerofweek=news1=news2=news3 = []
+        self.news1=[]
+        self.news2=[]
+        self.news3 = []
+        self.player_size = len(get_players(''))
+        playerofweek,news1,news2,news3 = get_launcher_settings()
+        self.playerofweek = playerofweek
+        self.title1 = news1[0]
+        self.title2 = news2[0]
+        self.title3 = news3[0]
+        for i,x in enumerate(textwrap.wrap(news1[1],width=40)):
+            self.news1.append(draw_text(x,15,False,WHITE))
+        for z,b in enumerate(textwrap.wrap(news2[1],width=40)):
+            self.news2.append(draw_text(b,15,False,WHITE))
+        for g,h in enumerate(textwrap.wrap(news3[1],width=40)):
+            self.news3.append(draw_text(h,15,False,WHITE))
 class chat_window(main_frame):
     def __init__(self,parent,user1,user2):
         super().__init__(parent)
