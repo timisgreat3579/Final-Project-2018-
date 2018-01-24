@@ -1,5 +1,8 @@
-# Game 1 Reaction Time Game, A letter shows up and you have to click the key
-# on the keyboard
+#HEADER COMMENT FOR REACTION GAME/QUICK TYPE BY TIM RUSCICA
+# In this game a series of letters (26) will appear on the screen
+# and while being timed you will have to try to hit the key that appears
+# as fast as possible, if you hot the wrong key you will have time added
+# to your score.
 
 import pygame
 import time
@@ -16,6 +19,7 @@ from leaderboard import Leaderboard
 
 pygame.init()
 
+#Global vars
 bg = (32,32,32)
 best = 10000
 curUsr = ''
@@ -25,6 +29,7 @@ tries = 0
 totalTime = 0
 last = ''
 
+#Fonts
 startfont = pygame.font.SysFont("monospace", 60)
 startfont1 = pygame.font.SysFont("monospace", 85)
 myfont = pygame.font.SysFont("monospace", 150)
@@ -33,6 +38,7 @@ displayFont = pygame.font.SysFont("monospace", 30)
 w_width = 1000
 w_height = 600
 
+#Button class for easy implemntation of buttons
 class button(object):
     def __init__(self, text, textSize, width, height, color):
         self.text = text
@@ -75,7 +81,7 @@ class button(object):
     def textColor(self, color):
         self.textColor = color
 
-
+# this class will update the timer, correct, remaining and wrong text trackers at the top of the screen
 def update():
     global time1, totalTime
     pygame.draw.rect(win, bg, (0,0,w_width,100))
@@ -92,6 +98,7 @@ def update():
     win.blit(label, (220, 10))
     pygame.display.update()
 
+#This will randomly show a letter in a random position on the screen
 def showLetter():
     global last
     letter = generateKey()
@@ -103,18 +110,22 @@ def showLetter():
     pygame.display.update()
     return letter
 
+#Call this if the user gets a key right
 def correct():
     global right
     right += 1
 
+#Call this if a user gets a key wrong
 def incorrect():
     global wrong
     wrong += 1
 
+#This generates a random letter
 def generateKey():
     r = random.randrange(0,26)
     return chr(65 + r)
 
+#This will countdown on the screen 3, 2, 1 etc.
 def startCount():
     win.fill(bg)
     label = myfont.render('3',1,(255,255,255))
@@ -132,7 +143,7 @@ def startCount():
     pygame.display.update()
     pygame.time.delay(1000)
 
-
+#Shows the end screen
 def endScreen():
     global totalTime, best
     totalTime += 2.5 * wrong
@@ -152,10 +163,11 @@ def endScreen():
         leaderboard.addGamesPlayed(curUsr, 'quicktype')
         if best == 0:
             best = 1000000
-
+        #if they have a better time say new best etc..
         if totalTime < best:
             leaderboard.addHighscore(curUsr, 'quicktype', round(totalTime, 2))
             best = round(totalTime, 2)
+        #wait for them to click a key to continue
         while loop:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -164,7 +176,7 @@ def endScreen():
                 if event.type == pygame.KEYDOWN:
                     loop = False
 
-
+#display infoscreen
 def showInfoScreen():
     global win
     win.fill(bg)
@@ -195,6 +207,7 @@ def showInfoScreen():
     win.blit(l, (20, 480))
     pygame.display.update()
 
+    #wait for them to click to go back to start screen
     run = True
     while run:
         for event in pygame.event.get():
@@ -218,13 +231,14 @@ def showInfoScreen():
 def start(currentUser):
     global win, curUsr, best
     curUsr = currentUser
+    #setup amazon ws table
     session = boto3.resource('dynamodb',
                              aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
                              aws_secret_access_key='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',
                              region_name="ca-central-1"
                              )
     table = session.Table('highscores')
-
+    #try to get users previous best
     try:
         response = table.get_item(
             Key={
@@ -235,6 +249,7 @@ def start(currentUser):
     except:
         best = 10000000
 
+    #init window and buttons
     win = pygame.display.set_mode((w_width, w_height))
     pygame.display.set_caption('Quick Type')
     title = startfont1.render('Quick Type',1,(255,255,255))
@@ -243,16 +258,20 @@ def start(currentUser):
     infoBtn = button('Learn to Play', 30, 250, 50, (40,40,40))
     btns = [startBtn, infoBtn]
     run = True
+    #setup leaderboard tables
     globalTable = Leaderboard(curUsr, 'quicktype', 'global', win, 300, 380, 150, 130)
     friendTable = Leaderboard(curUsr, 'quicktype', 'friend', win, 300, 380, 550, 130)
+
+    #Main loop for startscreen
     while run:
         pygame.time.delay(50)
         win.fill(bg)
-        globalTable.draw()
-        friendTable.draw()
+        globalTable.draw((255,255,255), True)
+        friendTable.draw((255,255,255), True)
         win.blit(title, (w_width / 2 - title.get_width() / 2, 0))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)
+        # if user clicks on start button then start the game
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -276,17 +295,19 @@ def start(currentUser):
     pygame.display.update()
     main()
 
-
+#this is the main loop function for the game
 def main():
     global time1, tries, right, wrong, totalTime, win
 
     play = True
     time1 = 0
+    #will loop until the game is over
     while play:
         label = startfont.render('Press Any Key to Begin...', 1, (255,255,255))
         win.blit(label, (w_width/2 - label.get_width()/2,w_height/2-label.get_height()/2))
         pygame.display.update()
         pygame.time.delay(100)
+        #wait for them to hit a key to start
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 play = False
@@ -298,11 +319,13 @@ def main():
                 right = 0
                 wrong = 0
                 time1 = time.time()
+                #once game starts it will go until the user hits all 26 keys
                 while tries < 26:
                     tries += 1
                     win.fill(bg)
                     correctKey = showLetter()
                     gameLoop = True
+                    #will wait for user to hit the next key
                     while gameLoop:
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
@@ -327,4 +350,3 @@ def main():
                 start(curUsr)
 
 # Call the start function with an argument of the string name of the user to start the game
-start('nickiscool123')

@@ -1,3 +1,10 @@
+#HEADER COMMENT FOR INTEGER RECALL GAME BY TIM RUSCICA
+# This game generates a sequence of numbers and requires that you remember it
+# the series of numbers gets larger and larger. You can take as long as you'd like
+# to look at the number but you will only have 1 minute to get the highest score possible.
+# The longer the sequence you remember the more points you will receive. Your score will
+# be saved on the cloud and you will be able to compare yourself to other users.
+
 import pygame
 import time
 import random
@@ -15,6 +22,7 @@ game_directory = (os.path.abspath(os.path.join(os.path.dirname(__file__), '')))
 game_directory = os.path.abspath(os.path.join(game_directory, ''))
 sys.path.append(game_directory)
 
+#Global variables
 bg = (0,51,102)
 best = None
 totalTime = 60
@@ -25,6 +33,7 @@ usrSeq = []
 lvl = 1
 lastCorrect = 0
 
+# Fonts
 startfont = pygame.font.SysFont("monospace", 60)
 startfont1 = pygame.font.SysFont("monospace", 85)
 myfont = pygame.font.SysFont("monospace", 100)
@@ -33,6 +42,7 @@ displayFont = pygame.font.SysFont("monospace", 30)
 w_width = 1000
 w_height = 600
 
+#This class creates a button that has hover methods and mouve over methods to save time for repetive code
 class button(object):
     def __init__(self, text, textSize, width, height, color):
         self.text = text
@@ -75,7 +85,7 @@ class button(object):
     def textColor(self, color):
         self.textColor = color
 
-
+# This function generates a random sequence of numbers
 def generateSeq(n):
     seq = ''
     for x in range(n):
@@ -83,15 +93,17 @@ def generateSeq(n):
 
     return seq
 
-
+# This function will show the generated function on the screen
 def showSeq():
     global seq, lvl, time1, win, lastCorrect
     lvl += 1
     seq = generateSeq(lvl//2)
 
+
     next = button('Next', 40, 150, 50, (0, 128, 0))
     s = myfont.render(seq, 1, (255,255,255))
     run = True
+    #Will stay in this loop until you click next or enter
     while run:
         if totalTime < -.0001:
             run = False
@@ -122,7 +134,7 @@ def showSeq():
                     run = False
         pygame.display.update()
 
-
+#Update the screen and the timer in the top right
 def update():
     global time1, totalTime, usrSeq
     pygame.draw.rect(win, bg, (0,0,w_width,100))
@@ -132,10 +144,11 @@ def update():
     label = displayFont.render('Score: ' + str(score),1,(255,255,255))
     win.blit(label, (w_width - 10 - label.get_width(), 10))
 
-
+# Displays the information screen
 def showInfoScreen():
     pass
 
+#This will show the underlines on the screen representing the amount of numbers to be typed in
 def spacedOut(se, guessed=[]):
     spacedWord = ''
     guessedNumbers = guessed
@@ -148,7 +161,7 @@ def spacedOut(se, guessed=[]):
 
     return spacedWord
 
-
+# This displays your score and shows you that your time has run out
 def endScreen():
     global score, best
 
@@ -177,9 +190,12 @@ def endScreen():
             if event.type == pygame.KEYDOWN:
                 loop = False
 
+#Call this function to run the game
 def start(currentUser):
     global win, curUsr, best
     curUsr = currentUser
+
+    #Init amazon ws tables
     session = boto3.resource('dynamodb',
                              aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
                              aws_secret_access_key='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',
@@ -187,6 +203,7 @@ def start(currentUser):
                              )
     table = session.Table('highscores')
 
+    #Try to get the users best score to display
     try:
         response = table.get_item(
             Key={
@@ -197,24 +214,32 @@ def start(currentUser):
     except:
         best = -1
 
+    #Create pygame window
     win = pygame.display.set_mode((w_width, w_height))
     pygame.display.set_caption('Integer Recall')
     title = startfont1.render('Integer Recall',1,(255,255,255))
 
+    #Init buttons to display on screen
     startBtn = button('Start Game', 30, 250, 50, (64,64,64))
     infoBtn = button('Learn to Play', 30, 250, 50, (64,64,64))
     btns = [startBtn, infoBtn]
     run = True
+    #Create leaderboard objects
     globalTable = Leaderboard(curUsr, 'integerrecall', 'global', win, 300, 380, 150, 130)
     friendTable = Leaderboard(curUsr, 'integerrecall', 'friend', win, 300, 380, 550, 130)
+
+    #MAINLOOP for start screen
     while run:
         pygame.time.delay(50)
         win.fill(bg)
-        globalTable.draw()
-        friendTable.draw()
+        #Show leaderbaord tables
+        globalTable.draw((255,255,255),True)
+        friendTable.draw((255,255,255),True)
         win.blit(title, (w_width / 2 - title.get_width() / 2, 0))
         startBtn.draw(win, 175, w_height - 80)
         infoBtn.draw(win, w_width - 425, w_height - 80)
+
+        #Waitr for user to click start
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -238,25 +263,32 @@ def start(currentUser):
     pygame.display.update()
     main()
 
-
+#This function represnts the main game loop
 def main():
     global time1, totalTime, win, lvl, score, lastCorrect, score
 
     play = True
     time1 = 0
     next = button('Next', 40, 150, 50, (0, 128, 0))
+
+    #MAINLOOP for game
     while play:
         label = startfont.render('Press Any Key to Begin...', 1, (255,255,255))
         win.blit(label, (w_width/2 - label.get_width()/2,w_height/2-label.get_height()/2))
         pygame.display.update()
         pygame.time.delay(100)
+
+        #Wait for events and respond accordingly
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 play = False
             if event.type == pygame.KEYDOWN:
+                #start timer once the user presses and key
                 update()
                 time1 = time.time()
                 totalTime = time.time() - time1
+
+                #Will loop until time is done
                 while totalTime > -0.001:
                     win.fill(bg)
 
@@ -264,6 +296,8 @@ def main():
                     showSeq()
                     usrPressed = ''
                     pygame.display.update()
+
+                    #will loop until user hits next or enter
                     while gameLoop:
                         if totalTime < -0.0001:
                             gameLoop = False
@@ -272,19 +306,24 @@ def main():
                         if len(usrPressed) > len(seq):
                             usrPressed = usrPressed[-1]
 
+                        #Wait for enter press or next button click, if backspace is clicked remove the last num
                         for event in pygame.event.get():
                             if event.type == pygame.QUIT:
                                 gameLoop = False
                                 pygame.quit()
                             if event.type == pygame.KEYDOWN:
                                 pressed = pygame.key.get_pressed()
+                                #gets a list of keys pressed
                                 for i in range(len(pressed)):
                                     if pressed[i] == 1:
                                         if str(pygame.key.name(i)).isdigit():
                                             usrPressed += pygame.key.name(i)
                                         if pygame.key.name(i) == 'backspace':
                                             usrPressed = usrPressed[:-1]
+                                            #if backspace is hit remove last num
+
                                         if pygame.key.name(i) == 'return':
+                                            #if enter is hit move to next seq
                                             if usrPressed == seq:
                                                 score += (lvl // 2) * 10
                                                 gameLoop = False
@@ -294,6 +333,7 @@ def main():
                                                 gameLoop = False
                                                 lastCorrect = -1
 
+                            #check for hover of buttons
                             if event.type == pygame.MOUSEMOTION:
                                 pos = pygame.mouse.get_pos()
                                 if next.isMouseOver(pos):
@@ -301,6 +341,7 @@ def main():
                                 else:
                                     next.update(win)
 
+                            #if the mouse is clicked when ove rnext button
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 pos = pygame.mouse.get_pos()
                                 if next.isMouseOver(pos):
