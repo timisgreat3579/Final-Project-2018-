@@ -18,21 +18,24 @@ import os
 
 currentUser = ''
 
-
 import hashlib,uuid
 
+# This class hashes the password stored in the amazon ws table for secuirty and encription purposes
 class register(object):
+
     @staticmethod
-    def hash_password(password):
+    def hash_password(password): #call this to hash password
         salt = str(uuid.uuid4().hex)
         return(hashlib.sha256(salt.encode() + str(password).encode()).hexdigest() + ':' + salt)
+
     @staticmethod
-    def check_password(hashed_password, user_password):
+    def check_password(hashed_password, user_password): #Call this to see if the entered strig is the correct password
         password, salt = hashed_password.split(':')
         return(password == hashlib.sha256(salt.encode() + user_password.encode()).hexdigest())
 
 
 # Helper class to convert a DynamoDB item to JSON.
+#Simply allows us to read a decimal like a string
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
@@ -52,6 +55,7 @@ class loginWindow(object):
         self.passw = 0
         top = self.top = Toplevel(master)
 
+        #All tkinter styling elements
         top.geometry('345x265+830+400')
         top.title('Sign In')
         top.configure(background='#282828')
@@ -84,6 +88,7 @@ class loginWindow(object):
         self.top.bind('<Return>', self.getValues)
 
     def xBtn(self):
+        #When the x button is clicke on exit the program
         self.top.destroy()
         window.deiconify()
         window.destroy()
@@ -91,6 +96,7 @@ class loginWindow(object):
         raise SystemExit
 
     def createAccount(self):
+        #if thet click on the string that says create account
         self.top.destroy()
         window.deiconify()
         window.destroy()
@@ -103,10 +109,11 @@ class loginWindow(object):
         self.user = self.e1.get() 
         self.passw = self.e.get()
 
+        #if the user is not blank and the password is not blank
         if self.user != '' and self.passw != '':
-            if self.checkServer():
+            if self.checkServer(): #If the users name exsists in the table
                 self.code = 0
-                if self.code != self.getCode():
+                if self.code != self.getCode(): # this is to make sure their email is validated
                     d = myDialog(self.top)
                     self.top.wait_window(d.top1)
                     self.code = d.code
@@ -141,6 +148,7 @@ class loginWindow(object):
                          )
 
                 else:
+                    #If the user has validated their email and their password is correct then they have a succesful login
                     #messagebox.showinfo('Suucesful Login', 'This is to notify you of a succesful login')
                     currentUser = self.user
                     #Destroy the window once they sign in
@@ -177,6 +185,7 @@ class loginWindow(object):
                     return False
                 
     def getCode(self):
+        #get the email code we sent to them
         response = table.query(
             KeyConditionExpression=Key('peopleid').eq(self.user)
             )
@@ -185,13 +194,13 @@ class loginWindow(object):
             return i['code']
     
     
-
+#Class to create a new user
 class registerWindow(object):
     def __init__(self, master):
         self.user = None
         self.passw = None
         self.email = None
-
+        #Tkinter styling elements
         top = self.top = Toplevel(master)
         top.overrideredirect(1)
         top.geometry('375x360+830+400')
@@ -239,6 +248,7 @@ class registerWindow(object):
         self.top.bind('<Return>', self.submitForm)
 
     def xBtn(self):
+        #if the x button is clicked call this
         self.top.destroy()
         window.deiconify()
         window.destroy()
@@ -246,6 +256,7 @@ class registerWindow(object):
         raise SystemExit
         
     def loginAccount(self):
+        # if the usert clicks the text that says login here
         self.top.destroy()
         window.deiconify()
         window.destroy()
@@ -262,6 +273,7 @@ class registerWindow(object):
 
     @staticmethod
     def generateCode():
+        #generates a random code to sent to the user
         code = ''
         for x in range(6):
             r = random.randrange(0,10)
@@ -270,6 +282,7 @@ class registerWindow(object):
 
 
     def addToTable(self, code=0):
+        #adds the user to the table
         global currentUser
         currentUser = self.user
         respons = table.put_item(
@@ -284,7 +297,7 @@ class registerWindow(object):
                 }
         )
         tabl = session.Table('highscores')
-
+        #we also need to add them to all the other data tables
         respons = tabl.put_item(
            Item={
                 'peopleid': self.user,
@@ -316,7 +329,7 @@ class registerWindow(object):
             }
         )
 
-    def checkIfUsername(self, username):
+    def checkIfUsername(self, username): #check if username is not already taken
         try:
             response = table.get_item(
             Key={
@@ -335,7 +348,7 @@ class registerWindow(object):
             except:
                 return True
         
-    def sendEmail(self, code):
+    def sendEmail(self, code): #send a validation email
         import smtplib
         try:
             TO = [self.email] # must be a list
@@ -407,7 +420,7 @@ class registerWindow(object):
             messagebox.showerror('Invalid Username', 'Your username cannot contain any spaces!')
 
 
-class myDialog:
+class myDialog: #this simply pops up a window that the user can enter a numbe rinto to validate their code
     def __init__(self, parent):
         self.code = 0
         top1 = self.top1 = Toplevel(parent)
