@@ -178,4 +178,40 @@ def send_friend_request(friend):
         )
 
 def remove_friend(friend):
-    pass
+    response = people_table.get_item(
+        Key={
+            'peopleid': user_login
+        }
+    )
+    oldRequests = response['Item']['friends']
+    x = oldRequests.index(friend)
+    del oldRequests[x]
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':user_login
+        },
+        UpdateExpression="set " + 'friends' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
+
+    response = people_table.get_item(
+        Key={
+            'peopleid': friend
+        }
+    )
+    oldRequests = response['Item']['friends']
+    x = oldRequests.index(user_login)
+    del oldRequests[x]
+    
+    response = people_table.update_item(
+        Key={
+            'peopleid':friend
+        },
+        UpdateExpression="set " + 'friends' + " = :r",
+        ExpressionAttributeValues={
+            ':r': oldRequests,
+        }
+    )
