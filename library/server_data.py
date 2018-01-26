@@ -2,9 +2,11 @@ from configparser import ConfigParser
 from boto3.dynamodb.conditions import Key, Attr
 import boto3
 
+cred = ConfigParser()
+cred.read('./data/credentials.ini')
 session = boto3.resource('dynamodb',
-                         aws_access_key_id='AKIAIOPUXE2QS7QN2MMQ',
-                         aws_secret_access_key='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',
+                        aws_access_key_id=cred.get('default','aws_access_key_id'),
+                         aws_secret_access_key=cred.get('default','aws_secret_access_key'),
                          region_name="ca-central-1"
                          )
 people_table = session.Table('people')
@@ -15,36 +17,45 @@ for line in file:
 file.close()
 
 def get_players(query):
+    #scans table on AWS server
     response = people_table.scan()
     names = []
     for i in response['Items']:
+        #gets the peopleid key
         name = i['peopleid']
+        #checks if person is in the search query
         if query in name.lower() and len(query) is not 0:
             names.append(name)
         elif len(query) is 0:
             names.append(name)
+    #does not return user
     if user_login in names: names.remove(user_login)
     return names
 
 def get_table_data(data):
+    #gets data, such as friends from server
     names = []
     response = people_table.query(KeyConditionExpression=Key('peopleid').eq(user_login))
     for i in response['Items']: names = i[data]
     if user_login in names: names.remove(user_login)
     return names
 
+
+#gets data from games, such as the hours played on quicktype
 def get_game_data(game,data_type,target_user):
     game_table = session.Table(data_type)
     response = game_table.query(KeyConditionExpression=Key('peopleid').eq(target_user))
     for i in response['Items']: names = i[game]
     return names
 
+#gets chat log so you can chat with players
 def get_chat_log(primary_user,secondary_user):
     chat_found = None
     chat_table = session.Table('chat_sessions')
     response = chat_table.scan()
     for i in response['Items']:
         name = i['users']
+        #checks if user already exists
         if str(primary_user+','+secondary_user) == name or str(secondary_user+','+primary_user) == name:
             response2 = chat_table.query(KeyConditionExpression=Key('users').eq(name))
             for x in response2['Items']:
@@ -53,6 +64,7 @@ def get_chat_log(primary_user,secondary_user):
     else:
         chat_found = create_chat_session(primary_user,secondary_user)
 
+#creates a new chat session if it doesn't exist
 def create_chat_session(primary_user,secondary_user):
     chat_table = session.Table('chat_sessions')
     resposnse = chat_table.put_item(
@@ -63,6 +75,7 @@ def create_chat_session(primary_user,secondary_user):
         )
     return None
 
+#get news for launcher
 def get_launcher_settings():
     launcher_table = session.Table('launcher')
     playerofweek = ''
@@ -79,6 +92,7 @@ def get_launcher_settings():
     return playerofweek,news1,news2,news3
 
 
+#send message to user
 def send_message(primary_user,secondary_user,message_to_send):
     chat_table = session.Table('chat_sessions')
     response = chat_table.scan()
@@ -95,6 +109,7 @@ def send_message(primary_user,secondary_user,message_to_send):
                 }
         )
 
+#accept friend request by adding each other to the list
 def accept_friend_request(friend):
     response = people_table.get_item(
         Key={
@@ -136,7 +151,7 @@ def accept_friend_request(friend):
 
     decline_friend_request(friend)
     
-
+#decline friend request by removing each other from requests
 def decline_friend_request(friend):
     response = people_table.get_item(
         Key={
@@ -158,6 +173,7 @@ def decline_friend_request(friend):
     )
     
 
+#send friend request by adding each other to requests list
 def send_friend_request(friend):
     response = people_table.get_item(
         Key={
@@ -186,6 +202,7 @@ def send_friend_request(friend):
             }
         )
 
+#remove friend by removing from list
 def remove_friend(friend):
     response = people_table.get_item(
         Key={

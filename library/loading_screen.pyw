@@ -6,6 +6,7 @@ pygame.init()
 #if pygame.QUIT in pygame.event.get(): pygame.quit();raise SystemExit;
 user_login = ''
 
+#creates loading screen
 class load_screen():
     def __init__(self):
         self.screen = pygame.display.set_mode((640,350),pygame.NOFRAME)
@@ -14,6 +15,7 @@ class load_screen():
         self.screen.fill((0,0,0))
         pygame.display.flip() 
 
+#creates a logo to notify user that loading is happening
 class buffer():
     def __init__(self,surface,x,y,default_text='',alpha=200):
         self.load_text = pygame.font.SysFont('Arial',50,True)
@@ -35,6 +37,7 @@ class buffer():
                                                ,(self.background.get_height() - self.text_surface.get_height())/2+self.y))
         
 
+#creates a session for login
 class session_create():
     def __init__(self):
         import boto3
@@ -46,6 +49,7 @@ class session_create():
                          aws_secret_access_key=cred.get('default','aws_secret_access_key'),
                          region_name="ca-central-1"
                          )
+#surface object for surface creation
 class surface_object():
     def __init__(self,w,h,x,y,color,alpha=255):
         self.w = w
@@ -71,26 +75,33 @@ class surface_object():
 
     def get_rect(self):
         return self.surface.get_rect(center=(self.x,self.y))
-    
+
+#change text to tell use what is being loaded
 def change_text(text):
     buff.default_text = text
     buff.draw(scr)   
     pygame.display.flip()
 
-    
+#
 scr = load_screen().screen
 buff = buffer(surface_object(640,350,0,0,(0,0,0)),0,0,'LOADING',255)
 buff.draw(scr)
 pygame.display.flip()
 
 
+#tell user it is checking for pip
 
 change_text('CHECKING PIP')
 
+#check is pip is already existing
 if importlib.find_loader('pip') is None:
     from .getpip import *
+
+#import pip
 import pip
 change_text('CHECKING BOTO')
+
+#check if boto is already loaded
 if importlib.find_loader('boto3') is None:
     change_text('INSTALLING BOTO')
     pip.main(['install','boto3'])
@@ -99,11 +110,13 @@ change_text('LOGGING IN...')
 session_var = session_create().session
 pygame.quit()
 
+#saves which user logged in
 from .loginWindow import runLogin
 file = open('./data/session.txt', 'r')
 for line in file:
     us = line
 
+#writes
 if us == '0':
     user_login = runLogin()
 
