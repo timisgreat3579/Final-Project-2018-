@@ -1,2 +1,3 @@
-# timandnick
-Project for ICS4U1
+# Game Launcher
+
+Please refer to the word document for instructions on use.
